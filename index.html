@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Analog Clock</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Time</h1>
+
+        <div class="clock-container">
+            <div class="accent-circle accent-1"></div>
+            <div class="accent-circle accent-2"></div>
+            <div class="accent-circle accent-3"></div>
+            <div class="outer-ring"></div>
+            <div class="inner-ring"></div>
+
+            <div class="clock" id="clock">
+                <div class="sun-ring" id="sunRing">
+                    <div class="sun-arc" id="sunArc"></div>
+                    <div class="sun-indicator" id="sunIndicator"></div>
+                </div>
+                <div class="seconds-ring" id="secondsRing"></div>
+                <div class="hand hour-hand" id="hourHand"></div>
+                <div class="hand minute-hand" id="minuteHand"></div>
+                <div class="hand second-hand" id="secondHand"></div>
+                <div class="center-dot"></div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="time-section">
+                <div class="label">Digital</div>
+                <div class="digital-time" id="digitalTime">00:00:00</div>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="time-section">
+                <div class="label">Date</div>
+                <div class="date-display" id="dateDisplay">Loading...</div>
+            </div>
+        </div>
+
+        <div class="panel-row">
+            <div class="timezone-panel" id="timezonePanel">
+                <div class="panel-title">World Time</div>
+                <div class="timezone-grid" id="timezoneGrid"></div>
+            </div>
+
+            <div class="calendar-panel" id="calendarPanel" aria-live="polite" aria-hidden="false">
+                <div class="calendar-header">
+                    <div class="calendar-title" id="calendarTitle">Month</div>
+                    <div class="calendar-nav">
+                        <button type="button" class="ghost-button small" id="calendarPrev">Prev</button>
+                        <button type="button" class="ghost-button small" id="calendarNext">Next</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+        </div>
+
+        <div class="controls" aria-label="Clock settings">
+            <label class="toggle">
+                <input type="checkbox" id="formatToggle" checked>
+                <span class="toggle-label">24 Hour</span>
+            </label>
+
+            <label class="toggle">
+                <input type="checkbox" id="smoothToggle" checked>
+                <span class="toggle-label">Smooth Second</span>
+            </label>
+
+            <label class="select">
+                <span class="select-label">Timezone</span>
+                <select id="timezoneSelect">
+                    <option value="local" selected>Local</option>
+                    <option value="utc">UTC</option>
+                </select>
+            </label>
+
+            <label class="select">
+                <span class="select-label">Theme</span>
+                <select id="themeSelect">
+                    <option value="aurora" selected>Aurora</option>
+                    <option value="desert">Desert</option>
+                    <option value="steel">Steel</option>
+                </select>
+            </label>
+
+            <label class="toggle">
+                <input type="checkbox" id="chimeToggle">
+                <span class="toggle-label">Chime</span>
+            </label>
+
+            <label class="toggle">
+                <input type="checkbox" id="ambientToggle">
+                <span class="toggle-label">Ambient</span>
+            </label>
+
+            <button class="ghost-button" id="focusToggle" type="button">Focus Mode</button>
+        </div>
+
+        <button class="focus-exit" id="focusExit" type="button">Exit Focus</button>
+
+        <div class="sr-only" aria-live="polite" id="timeLiveRegion">Time</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
