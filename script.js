@@ -1,3 +1,10 @@
+// Modern Clock — main client script
+// This file wires up the DOM, handles user settings, runs the animation loop,
+// renders analog/digital time, draws time-related rings, and updates panels.
+
+// -------------------------------
+// DOM references for the clock face and readouts
+// -------------------------------
 const clock = document.getElementById('clock');
 const hourHand = document.getElementById('hourHand');
 const minuteHand = document.getElementById('minuteHand');
@@ -6,6 +13,9 @@ const digitalTime = document.getElementById('digitalTime');
 const dateDisplay = document.getElementById('dateDisplay');
 const timeLiveRegion = document.getElementById('timeLiveRegion');
 
+// -------------------------------
+// Settings controls (UI inputs)
+// -------------------------------
 const formatToggle = document.getElementById('formatToggle');
 const smoothToggle = document.getElementById('smoothToggle');
 const timezoneSelect = document.getElementById('timezoneSelect');
@@ -15,6 +25,9 @@ const ambientToggle = document.getElementById('ambientToggle');
 const focusToggle = document.getElementById('focusToggle');
 const focusExit = document.getElementById('focusExit');
 
+// -------------------------------
+// Panels for world time and calendar
+// -------------------------------
 const timezoneGrid = document.getElementById('timezoneGrid');
 const timezonePanel = document.getElementById('timezonePanel');
 
@@ -24,10 +37,17 @@ const calendarGrid = document.getElementById('calendarGrid');
 const calendarPrev = document.getElementById('calendarPrev');
 const calendarNext = document.getElementById('calendarNext');
 
+// -------------------------------
+// Decorative rings around the clock face
+// -------------------------------
 const sunArc = document.getElementById('sunArc');
 const sunIndicator = document.getElementById('sunIndicator');
 const secondsRing = document.getElementById('secondsRing');
 
+// -------------------------------
+// Clock number layout (only 12, 3, 6, 9 for a minimalist dial)
+// Each entry stores the label text and its angle on the circle.
+// -------------------------------
 const numbers = [
     { num: 12, angle: 0 },
     { num: 3, angle: 90 },
@@ -35,6 +55,10 @@ const numbers = [
     { num: 9, angle: 270 }
 ];
 
+// -------------------------------
+// Persistent settings state (saved to localStorage)
+// These values are the source of truth for UI + rendering.
+// -------------------------------
 const settings = {
     is24Hour: true,
     smoothSecond: true,
@@ -45,26 +69,39 @@ const settings = {
     focusMode: false
 };
 
-let timeFormatter = null;
-let dateFormatter = null;
-let lastTickKey = '';
-let lastChimeMinute = null;
-let calendarMonthOffset = 0;
-let sunriseData = null;
-let sunriseDateKey = '';
-let ambientPhase = 0;
-let audioContext = null;
-let masterGain = null;
+// -------------------------------
+// Cached formatter + runtime state
+// -------------------------------
+let timeFormatter = null;       // Intl.DateTimeFormat for time display
+let dateFormatter = null;       // Intl.DateTimeFormat for date display
+let lastTickKey = '';           // Used to skip frames when smooth seconds disabled
+let lastChimeMinute = null;     // Prevents repeated chimes inside the same minute
+let calendarMonthOffset = 0;    // Offset from the current month for calendar navigation
+let sunriseData = null;         // { sunrise, sunset } or null when unavailable
+let sunriseDateKey = '';        // Date string to refresh sunrise data daily
+let ambientPhase = 0;           // Phase used for ambient hue animation
+let audioContext = null;        // Web Audio context for chime
+let masterGain = null;          // Master gain node for chime volume
 
+// -------------------------------
+// Accessibility: reduce motion for users who prefer less animation
+// If enabled, we force step-based seconds.
+// -------------------------------
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (prefersReducedMotion) {
     smoothToggle.checked = false;
     settings.smoothSecond = false;
 }
 
+// -------------------------------
+// Load stored settings (if any) and merge into defaults
+// -------------------------------
 const storedSettings = JSON.parse(localStorage.getItem('modernClockSettings') || '{}');
 Object.assign(settings, storedSettings);
 
+// -------------------------------
+// Sync UI controls with stored settings
+// -------------------------------
 formatToggle.checked = settings.is24Hour;
 smoothToggle.checked = settings.smoothSecond;
 timezoneSelect.value = settings.timezone;
@@ -72,10 +109,17 @@ themeSelect.value = settings.theme;
 chimeToggle.checked = settings.chime;
 ambientToggle.checked = settings.ambient;
 
+// -------------------------------
+// Resolve timezone option for Intl formatting
+// Return undefined to use local browser timezone.
+// -------------------------------
 function getTimeZoneOption() {
     return settings.timezone === 'utc' ? 'UTC' : undefined;
 }
 
+// -------------------------------
+// Build or refresh the Intl formatters when settings change
+// -------------------------------
 function updateFormatters() {
     const timeZone = getTimeZoneOption();
     timeFormatter = new Intl.DateTimeFormat('en-US', {
@@ -94,14 +138,21 @@ function updateFormatters() {
     });
 }
 
+// -------------------------------
+// Remove any existing markers (used on resize)
+// -------------------------------
 function clearMarkers() {
     const markers = clock.querySelectorAll('.marker, .number');
     markers.forEach(marker => marker.remove());
 }
 
+// -------------------------------
+// Build the 60 markers and the 4 numeric labels
+// -------------------------------
 function buildMarkers() {
     clearMarkers();
 
+    // Size is dynamic to support responsive resizing
     const rect = clock.getBoundingClientRect();
     const size = rect.width;
     const center = size / 2;
@@ -109,16 +160,19 @@ function buildMarkers() {
     const numberRadius = size * 0.4;
     const sunRadius = size * 0.41;
 
+    // Store sun radius as a CSS custom property for the indicator position
     clock.style.setProperty('--sun-radius', `${sunRadius}px`);
 
+    // Minute/second markers around the dial
     for (let i = 0; i < 60; i++) {
         const marker = document.createElement('div');
         marker.className = i % 5 === 0 ? 'marker major' : 'marker';
-        const angle = i * 6;
+        const angle = i * 6; // 360 degrees / 60 markers
         marker.style.transform = `translate(-50%, -${markerRadius}px) rotate(${angle}deg)`;
         clock.appendChild(marker);
     }
 
+    // Numeric labels placed manually for a clean look
     numbers.forEach(item => {
         const numberDiv = document.createElement('div');
         numberDiv.className = 'number';
@@ -135,6 +189,9 @@ function buildMarkers() {
     });
 }
 
+// -------------------------------
+// Return time parts in the currently selected timezone
+// -------------------------------
 function getTimeParts(now) {
     if (settings.timezone === 'utc') {
         return {
@@ -153,6 +210,10 @@ function getTimeParts(now) {
     };
 }
 
+// -------------------------------
+// Static list of world time zones shown in the panel
+// Each item includes a label + IANA time zone ID.
+// -------------------------------
 const timezones = [
     { label: 'New York', zone: 'America/New_York' },
     { label: 'London', zone: 'Europe/London' },
@@ -160,6 +221,9 @@ const timezones = [
     { label: 'Sydney', zone: 'Australia/Sydney' }
 ];
 
+// -------------------------------
+// Create the time zone cards
+// -------------------------------
 function buildTimezonePanel() {
     timezoneGrid.innerHTML = '';
     timezones.forEach(entry => {
@@ -173,6 +237,9 @@ function buildTimezonePanel() {
     });
 }
 
+// -------------------------------
+// Update each time zone card with the current time
+// -------------------------------
 function updateTimezonePanel(now) {
     const use24 = settings.is24Hour;
     timezoneGrid.querySelectorAll('.tz-time').forEach(node => {
@@ -188,15 +255,24 @@ function updateTimezonePanel(now) {
     });
 }
 
+// -------------------------------
+// Apply the selected theme class to <body>
+// -------------------------------
 function setTheme(themeName) {
     document.body.classList.remove('theme-aurora', 'theme-desert', 'theme-steel');
     document.body.classList.add(`theme-${themeName}`);
 }
 
+// -------------------------------
+// Persist settings in localStorage for next load
+// -------------------------------
 function saveSettings() {
     localStorage.setItem('modernClockSettings', JSON.stringify(settings));
 }
 
+// -------------------------------
+// Create an AudioContext on first use (chime feature)
+// -------------------------------
 function initAudio() {
     if (audioContext) return;
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -205,6 +281,9 @@ function initAudio() {
     masterGain.connect(audioContext.destination);
 }
 
+// -------------------------------
+// Play a short chime using a sine oscillator
+// -------------------------------
 function playChime() {
     initAudio();
     if (audioContext.state === 'suspended') {
@@ -223,6 +302,10 @@ function playChime() {
     osc.stop(audioContext.currentTime + 0.45);
 }
 
+// -------------------------------
+// Build a simple monthly calendar grid
+// offset = 0 => current month, 1 => next month, -1 => previous month
+// -------------------------------
 function buildCalendar(offset = 0) {
     const now = new Date();
     const target = new Date(now.getFullYear(), now.getMonth() + offset, 1);
@@ -247,6 +330,7 @@ function buildCalendar(offset = 0) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
 
+    // Leading empty cells align the first day correctly
     for (let i = 0; i < firstDay; i++) {
         const cell = document.createElement('div');
         cell.className = 'calendar-cell';
@@ -254,6 +338,7 @@ function buildCalendar(offset = 0) {
         calendarGrid.appendChild(cell);
     }
 
+    // Create each day cell and highlight today
     for (let day = 1; day <= daysInMonth; day++) {
         const cell = document.createElement('div');
         cell.className = 'calendar-cell';
@@ -269,7 +354,9 @@ function buildCalendar(offset = 0) {
     }
 }
 
-
+// -------------------------------
+// Toggle focus mode to hide panels and enlarge the clock
+// -------------------------------
 function toggleFocusMode() {
     settings.focusMode = !settings.focusMode;
     document.body.classList.toggle('focus-mode', settings.focusMode);
@@ -277,6 +364,9 @@ function toggleFocusMode() {
     saveSettings();
 }
 
+// -------------------------------
+// Apply a gentle ambient hue-shift when enabled
+// -------------------------------
 function applyAmbientMode() {
     if (!settings.ambient) {
         document.body.style.filter = '';
@@ -287,10 +377,17 @@ function applyAmbientMode() {
     document.body.style.filter = `hue-rotate(${hue}deg) brightness(0.95)`;
 }
 
+// -------------------------------
+// Local midnight is used as the base for sunrise arc calculations
+// -------------------------------
 function getLocalMidnight(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+// -------------------------------
+// Calculate sunrise and sunset time using a simplified solar position algorithm
+// Returns null at extreme latitudes where sunrise/sunset may not occur.
+// -------------------------------
 function calcSunTimes(date, latitude, longitude) {
     const rad = Math.PI / 180;
     const day = Math.floor((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) -
@@ -346,8 +443,12 @@ function calcSunTimes(date, latitude, longitude) {
     return { sunrise, sunset };
 }
 
+// -------------------------------
+// Update the sun arc and indicator based on sunrise/sunset times
+// -------------------------------
 function updateSunRing(now) {
     if (!sunriseData) {
+        // Without location data, fade the sun UI to a subtle state
         sunArc.style.opacity = '0.2';
         sunIndicator.style.opacity = '0.2';
         return;
@@ -359,6 +460,7 @@ function updateSunRing(now) {
     const sunrisePct = ((sunrise - dayStart) / dayDuration) * 360;
     const sunsetPct = ((sunset - dayStart) / dayDuration) * 360;
 
+    // Conic gradient creates the highlighted day arc
     sunArc.style.background = `conic-gradient(from -90deg,
         rgba(245, 158, 11, 0.0) 0deg,
         var(--ring-fill) ${sunrisePct}deg,
@@ -372,24 +474,31 @@ function updateSunRing(now) {
     sunIndicator.style.transform = `translate(-50%, -50%) rotate(${indicatorAngle}deg) translate(0, -${radius.trim()})`;
 }
 
+// -------------------------------
+// Update the seconds progress ring using a conic gradient
+// -------------------------------
 function updateSecondsRing(seconds, milliseconds) {
     const progress = (seconds + milliseconds / 1000) / 60;
     const deg = Math.floor(progress * 360);
     secondsRing.style.background = `conic-gradient(var(--accent) ${deg}deg, rgba(245, 247, 251, 0.08) ${deg}deg)`;
 }
 
-
+// -------------------------------
+// Main render loop: updates hands, labels, panels, and effects
+// -------------------------------
 function updateClock() {
     const now = new Date();
     const { hours, minutes, seconds, milliseconds } = getTimeParts(now);
     const tickKey = `${hours}:${minutes}:${seconds}`;
     const todayKey = now.toDateString();
 
+    // For stepped seconds, skip repeated frames within the same second
     if (!settings.smoothSecond && tickKey === lastTickKey) {
         return;
     }
     lastTickKey = tickKey;
 
+    // Smooth interpolation for each hand if enabled
     const secondProgress = settings.smoothSecond ? seconds + milliseconds / 1000 : seconds;
     const minuteProgress = settings.smoothSecond ? minutes + seconds / 60 : minutes;
     const hourProgress = settings.smoothSecond ? (hours % 12) + minutes / 60 : (hours % 12);
@@ -402,15 +511,19 @@ function updateClock() {
     minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
     hourHand.style.transform = `rotate(${hourAngle}deg)`;
 
+    // Digital time and accessibility live region
     const timeString = timeFormatter.format(now);
     digitalTime.textContent = timeString;
     timeLiveRegion.textContent = `Time ${timeString}`;
 
+    // Date readout uses the same timezone as the clock
     const dateString = dateFormatter.format(now).toUpperCase();
     dateDisplay.textContent = dateString;
 
+    // Update supporting panels and rings
     updateTimezonePanel(now);
     if (sunriseData && sunriseDateKey !== todayKey) {
+        // Refresh sunrise/sunset data once per day
         navigator.geolocation?.getCurrentPosition(
             (pos) => {
                 const { latitude, longitude } = pos.coords;
@@ -426,19 +539,27 @@ function updateClock() {
     updateSunRing(now);
     updateSecondsRing(seconds, milliseconds);
 
+    // Optional chime on the minute
     if (settings.chime && seconds === 0 && minutes !== lastChimeMinute) {
         lastChimeMinute = minutes;
         playChime();
     }
 
+    // Ambient hue shift per frame (if enabled)
     applyAmbientMode();
 }
 
+// -------------------------------
+// RAF wrapper for continuous animation
+// -------------------------------
 function animationLoop() {
     updateClock();
     requestAnimationFrame(animationLoop);
 }
 
+// -------------------------------
+// Sync settings, refresh formatters, and persist changes
+// -------------------------------
 function handleSettingsChange() {
     settings.is24Hour = formatToggle.checked;
     settings.smoothSecond = smoothToggle.checked;
@@ -452,6 +573,7 @@ function handleSettingsChange() {
     updateClock();
     saveSettings();
 
+    // Ensure audio is unlocked if chime was just enabled
     if (settings.chime) {
         initAudio();
         if (audioContext.state === 'suspended') {
@@ -460,6 +582,9 @@ function handleSettingsChange() {
     }
 }
 
+// -------------------------------
+// Initial bootstrapping
+// -------------------------------
 updateFormatters();
 buildMarkers();
 buildTimezonePanel();
@@ -470,6 +595,9 @@ focusToggle.textContent = settings.focusMode ? 'Exit Focus' : 'Focus Mode';
 updateClock();
 requestAnimationFrame(animationLoop);
 
+// -------------------------------
+// Event wiring
+// -------------------------------
 window.addEventListener('resize', buildMarkers);
 formatToggle.addEventListener('change', handleSettingsChange);
 smoothToggle.addEventListener('change', handleSettingsChange);
@@ -488,6 +616,9 @@ calendarNext.addEventListener('click', () => {
     buildCalendar(calendarMonthOffset);
 });
 
+// -------------------------------
+// Request geolocation for sunrise/sunset arc on first load
+// -------------------------------
 navigator.geolocation?.getCurrentPosition(
     (pos) => {
         const { latitude, longitude } = pos.coords;

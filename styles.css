@@ -1,11 +1,14 @@
+/* Load the display font used across the UI */
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap');
 
+/* Global reset for predictable sizing and spacing */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* Base color tokens used by all themes */
 :root {
     --bg-deep: #070b0f;
     --bg-mid: #0e1620;
@@ -19,6 +22,7 @@
     --ring-fill: rgba(245, 158, 11, 0.6);
 }
 
+/* Theme variants override the base palette */
 body.theme-aurora {
     --bg-deep: #070b0f;
     --bg-mid: #0e1620;
@@ -43,6 +47,7 @@ body.theme-steel {
     --ring-fill: rgba(56, 189, 248, 0.6);
 }
 
+/* Full-page layout and background */
 body {
     font-family: 'Space Grotesk', sans-serif;
     background: radial-gradient(1200px 800px at 80% 10%, #102537 0%, var(--bg-deep) 60%);
@@ -70,11 +75,13 @@ body::before {
     opacity: 0.8;
 }
 
+/* Slow rotation keeps the background alive without distraction */
 @keyframes rotate-bg {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
+/* Page container with consistent padding and max width */
 .container {
     text-align: center;
     position: relative;
@@ -83,6 +90,7 @@ body::before {
     width: min(900px, 92vw);
 }
 
+/* Small uppercase heading */
 h1 {
     font-size: 16px;
     font-weight: 300;
@@ -93,6 +101,7 @@ h1 {
     opacity: 0.6;
 }
 
+/* Wrapper used for scaling in focus mode */
 .clock-container {
     position: relative;
     width: min(360px, 70vw);
@@ -116,6 +125,7 @@ h1 {
     border: 1px solid rgba(245, 247, 251, 0.06);
 }
 
+/* Inner ring decoration */
 .inner-ring {
     position: absolute;
     top: 50%;
@@ -137,11 +147,12 @@ h1 {
     backdrop-filter: blur(32px);
     border-radius: 50%;
     border: 1px solid rgba(245, 247, 251, 0.12);
-    box-shadow: 
+    box-shadow:
         0 12px 32px rgba(0, 0, 0, 0.45),
         inset 0 0 70px rgba(245, 247, 251, 0.03);
 }
 
+/* Ring that visualizes sunrise to sunset */
 .sun-ring {
     position: absolute;
     inset: 18px;
@@ -151,6 +162,7 @@ h1 {
     --sun-radius: 164px;
 }
 
+/* Colored arc portion inside the sun ring */
 .sun-arc {
     position: absolute;
     inset: 0;
@@ -164,6 +176,7 @@ h1 {
     mask: radial-gradient(circle, transparent 68%, black 69%);
 }
 
+/* Small dot that marks current sun position */
 .sun-indicator {
     position: absolute;
     top: 50%;
@@ -176,6 +189,7 @@ h1 {
     box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
 }
 
+/* Ring for seconds progress */
 .seconds-ring {
     position: absolute;
     inset: 36px;
@@ -211,6 +225,7 @@ h1 {
     transform-origin: center 0;
 }
 
+/* Larger markers for 5-minute increments */
 .marker.major {
     width: 4px;
     height: 4px;
@@ -238,6 +253,7 @@ h1 {
     z-index: 10;
 }
 
+/* Hour hand is shortest and widest */
 .hour-hand {
     width: 3px;
     height: 100px;
@@ -245,6 +261,7 @@ h1 {
     margin-left: -1.5px;
 }
 
+/* Minute hand is longer and thinner */
 .minute-hand {
     width: 2px;
     height: 140px;
@@ -252,6 +269,7 @@ h1 {
     margin-left: -1px;
 }
 
+/* Second hand is the longest and uses accent color */
 .second-hand {
     width: 1px;
     height: 160px;
@@ -268,10 +286,12 @@ h1 {
     gap: 24px;
 }
 
+/* Label + value stacks */
 .time-section {
     text-align: center;
 }
 
+/* Small uppercase label */
 .label {
     font-size: 10px;
     font-weight: 600;
@@ -281,6 +301,7 @@ h1 {
     margin-bottom: 8px;
 }
 
+/* Digital time uses tabular numbers to avoid jitter */
 .digital-time {
     font-size: 36px;
     font-weight: 300;
@@ -289,6 +310,7 @@ h1 {
     font-variant-numeric: tabular-nums;
 }
 
+/* Date text style */
 .date-display {
     font-size: 14px;
     font-weight: 400;
@@ -296,12 +318,14 @@ h1 {
     letter-spacing: 1px;
 }
 
+/* Vertical separator between digital time and date */
 .separator {
     width: 1px;
     height: 60px;
     background: rgba(245, 247, 251, 0.1);
 }
 
+/* Controls row */
 .controls {
     margin-top: 20px;
     display: flex;
@@ -311,6 +335,7 @@ h1 {
     flex-wrap: wrap;
 }
 
+/* Toggle and select wrapper styles */
 .toggle,
 .select {
     display: flex;
@@ -322,6 +347,7 @@ h1 {
     color: var(--ink-faint);
 }
 
+/* Custom toggle switch */
 .toggle input[type="checkbox"] {
     appearance: none;
     width: 36px;
@@ -334,6 +360,7 @@ h1 {
     border: 1px solid rgba(245, 247, 251, 0.18);
 }
 
+/* Toggle knob */
 .toggle input[type="checkbox"]::after {
     content: '';
     position: absolute;
@@ -346,16 +373,19 @@ h1 {
     transition: transform 0.2s ease;
 }
 
+/* Toggle on-state */
 .toggle input[type="checkbox"]:checked {
     background: rgba(245, 158, 11, 0.3);
     border-color: rgba(245, 158, 11, 0.6);
 }
 
+/* Toggle knob on-state */
 .toggle input[type="checkbox"]:checked::after {
     transform: translateX(16px);
     background: var(--accent);
 }
 
+/* Themed select menu */
 .select select {
     background: rgba(245, 247, 251, 0.08);
     border: 1px solid rgba(245, 247, 251, 0.18);
@@ -368,6 +398,7 @@ h1 {
     cursor: pointer;
 }
 
+/* Shared button style for ghost actions */
 .ghost-button {
     background: rgba(245, 247, 251, 0.08);
     border: 1px solid rgba(245, 247, 251, 0.2);
@@ -381,16 +412,19 @@ h1 {
     transition: transform 0.2s ease, background 0.2s ease;
 }
 
+/* Hover affordance for ghost buttons */
 .ghost-button:hover {
     transform: translateY(-1px);
     background: rgba(245, 247, 251, 0.14);
 }
 
+/* Smaller buttons used in the calendar header */
 .ghost-button.small {
     padding: 6px 10px;
     font-size: 11px;
 }
 
+/* World time panel card */
 .timezone-panel {
     margin-top: 0;
     background: rgba(16, 23, 31, 0.5);
@@ -402,6 +436,7 @@ h1 {
     height: 100%;
 }
 
+/* Panel title styling */
 .panel-title {
     font-size: 11px;
     letter-spacing: 2px;
@@ -410,12 +445,14 @@ h1 {
     margin-bottom: 12px;
 }
 
+/* Grid of timezone cards */
 .timezone-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 12px;
 }
 
+/* Individual timezone card */
 .timezone-card {
     background: rgba(245, 247, 251, 0.06);
     border-radius: 16px;
@@ -424,6 +461,7 @@ h1 {
     text-align: left;
 }
 
+/* City label in timezone card */
 .timezone-card .tz-city {
     font-size: 12px;
     letter-spacing: 1px;
@@ -431,6 +469,7 @@ h1 {
     color: var(--ink-faint);
 }
 
+/* Time value in timezone card */
 .timezone-card .tz-time {
     font-size: 18px;
     font-variant-numeric: tabular-nums;
@@ -438,6 +477,7 @@ h1 {
     margin-top: 6px;
 }
 
+/* Calendar panel container */
 .calendar-panel {
     margin-top: 0;
     background: rgba(16, 23, 31, 0.6);
@@ -451,6 +491,7 @@ h1 {
     height: 100%;
 }
 
+/* Row containing timezones + calendar panels */
 .panel-row {
     margin-top: 12px;
     width: 100%;
@@ -463,6 +504,7 @@ h1 {
     justify-content: center;
 }
 
+/* Calendar header row */
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -470,12 +512,14 @@ h1 {
     margin-bottom: 12px;
 }
 
+/* Month + year label */
 .calendar-title {
     font-size: 14px;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
+/* Calendar grid layout */
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -483,6 +527,7 @@ h1 {
     font-size: 12px;
 }
 
+/* Calendar cells */
 .calendar-cell {
     padding: 8px 0;
     text-align: center;
@@ -491,6 +536,7 @@ h1 {
     color: var(--ink-dim);
 }
 
+/* Weekday headers */
 .calendar-cell.header {
     background: transparent;
     color: var(--ink-faint);
@@ -499,12 +545,14 @@ h1 {
     font-size: 10px;
 }
 
+/* Highlight current day */
 .calendar-cell.today {
     background: rgba(245, 158, 11, 0.2);
     color: var(--ink);
     border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
+/* Hide panels and controls in focus mode */
 .focus-mode .controls,
 .focus-mode .timezone-panel,
 .focus-mode .calendar-panel,
@@ -517,10 +565,12 @@ h1 {
     overflow: hidden;
 }
 
+/* Scale the clock up in focus mode */
 .focus-mode .clock-container {
     transform: scale(1.35);
 }
 
+/* Floating focus exit button */
 .focus-exit {
     position: fixed;
     top: 20px;
@@ -540,12 +590,14 @@ h1 {
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+/* Show the focus exit button only in focus mode */
 .focus-mode .focus-exit {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
 }
 
+/* Screen-reader only content */
 .sr-only {
     position: absolute;
     width: 1px;
@@ -567,6 +619,7 @@ h1 {
     animation: pulse-ring 4s ease-in-out infinite;
 }
 
+/* Gentle pulse to add motion around the clock */
 @keyframes pulse-ring {
     0%, 100% {
         transform: translate(-50%, -50%) scale(1);
@@ -578,6 +631,7 @@ h1 {
     }
 }
 
+/* Reduce motion for users who prefer less animation */
 @media (prefers-reduced-motion: reduce) {
     body::before,
     .accent-circle {
@@ -585,6 +639,7 @@ h1 {
     }
 }
 
+/* Individual accent ring sizes */
 .accent-1 {
     top: 50%;
     left: 50%;
@@ -609,13 +664,13 @@ h1 {
     animation-delay: 2s;
 }
 
-/* Responsive */
+/* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {
     .clock-container {
         width: min(300px, 80vw);
         height: min(300px, 80vw);
     }
-    
+
     .outer-ring {
         width: calc(min(300px, 80vw) + 20px);
         height: calc(min(300px, 80vw) + 20px);
@@ -625,36 +680,36 @@ h1 {
         width: calc(min(300px, 80vw) - 20px);
         height: calc(min(300px, 80vw) - 20px);
     }
-    
+
     .hour-hand {
         height: 75px;
     }
-    
+
     .minute-hand {
         height: 105px;
     }
-    
+
     .second-hand {
         height: 120px;
     }
-    
+
     .number {
         font-size: 14px;
     }
-    
+
     .accent-1 { width: 330px; height: 330px; }
     .accent-2 { width: 345px; height: 345px; }
     .accent-3 { width: 360px; height: 360px; }
-    
+
     .digital-time {
         font-size: 28px;
     }
-    
+
     .info-panel {
         flex-direction: column;
         gap: 20px;
     }
-    
+
     .separator {
         width: 60px;
         height: 1px;
