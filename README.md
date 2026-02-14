@@ -2,6 +2,8 @@
 
 A modern analog + digital clock with a glassmorphism face, smooth animation options, and timezone control. Built with plain HTML, CSS, and JavaScript.
 
+![Modern Clock](images/modern-clock.png)
+
 This README is intentionally detailed so you can understand how each feature works, where it lives in the code, and what to change if you want to customize behavior or visuals.
 
 ## Features
