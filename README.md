@@ -1,118 +1,90 @@
 # Modern Clock
 
-A modern analog + digital clock with a glassmorphism face, smooth animation options, and timezone control. Built with plain HTML, CSS, and JavaScript.
+A modern analog + digital clock with theme presets, world time, calendar, and focus mode. Built with plain HTML, CSS, and JavaScript.
 
 ![Modern Clock](images/modern-clock.png)
 
-This README is intentionally detailed so you can understand how each feature works, where it lives in the code, and what to change if you want to customize behavior or visuals.
+## Project Structure
+```text
+modern-clock/
+├── index.html              # Markup and controls
+├── styles.css              # Layout, themes, and animation styling
+├── script.js               # Clock logic and UI behavior
+├── README.md               # Project documentation
+└── images/
+    └── modern-clock.png    # README screenshot
+```
+
+## Run
+1. Quick start: open `index.html` directly in your browser.
+2. Local server option:
+   - From `modern-clock/`, run:
+     ```bash
+     python3 -m http.server 8000
+     ```
+   - Open `http://localhost:8000`.
+
+## Requirements
+- A modern web browser
+- Optional: Python 3 (only needed for local server mode)
+
+## Browser Support
+- Google Chrome (recent versions)
+- Microsoft Edge (recent versions)
+- Mozilla Firefox (recent versions)
+- Safari (recent versions)
+
+## How to Use
+1. View live analog and digital time immediately on load.
+2. Toggle 12/24-hour display and local/UTC mode.
+3. Enable smooth seconds or tick mode.
+4. Switch between theme presets.
+5. Use Focus Mode to hide extra panels and enlarge the clock.
+6. Use calendar navigation controls for month browsing.
+7. Check world time cards for supported cities.
+
+## How It Works
+- A `requestAnimationFrame` loop updates clock state continuously.
+- Hand rotations are calculated from current time values.
+- Digital time/date formatting uses `Intl.DateTimeFormat`.
+- Theme, mode, and UI preferences are persisted with `localStorage`.
+- World time cards use predefined IANA timezone entries.
+- Sunrise/sunset and seconds progress rings are drawn via CSS gradients and runtime values.
 
 ## Features
-- Analog clock with minimalist markers and 12/3/6/9 numerals
-- Digital time + date display
-- 24-hour / 12-hour toggle
-- Smooth or ticking second hand
-- Local or UTC timezone switch
-- World time panel (New York, London, Tokyo, Sydney)
-- Theme presets (Aurora, Desert, Steel)
-- Sunrise/sunset ring with live sun position (uses geolocation if allowed)
+- Analog clock with hour/minute/second hands
+- Digital clock and date display
+- 12/24-hour format toggle
+- Local/UTC switching
+- Smooth or ticking seconds
+- World time panel
+- Theme presets
+- Sunrise/sunset ring with sun-position indicator
 - Seconds progress ring
-- Calendar panel with month navigation
-- Focus Mode (with quick exit button)
-- Ambient mode (slow hue shift)
-- Chime toggle (beep on the minute)
-- Settings persistence via `localStorage`
-- Responsive geometry for markers and numerals
+- Calendar panel with navigation
+- Focus Mode and ambient visual mode
+- Minute chime toggle
 - Reduced-motion support
+- Persistent settings via `localStorage`
 
-## How It Works (Detailed)
+## Limitations
+- Sunrise/sunset calculations depend on geolocation permission.
+- Chime behavior depends on browser audio permission/policies.
+- World time list is fixed unless modified in code.
+- Browser-only implementation may vary slightly across environments.
 
-### Clock Core
-- `script.js` drives a continuous `requestAnimationFrame` loop.
-- Each frame calls `updateClock()`, which:
-  - Computes the current time (local or UTC).
-  - Calculates the hand angles.
-  - Updates the analog hands and the digital display.
-  - Refreshes supporting panels and rings.
+## Privacy
+- All clock rendering and settings logic run locally in the browser.
+- No backend service is required.
+- Preferences are stored in localStorage under `modernClockSettings`.
 
-### Analog Hands
-- The analog clock uses three absolutely positioned elements:
-  - `.hour-hand`
-  - `.minute-hand`
-  - `.second-hand`
-- Each hand is rotated using CSS `transform: rotate(...)` based on the time.
-- Smooth mode interpolates fractions of seconds/minutes for a fluid sweep.
-
-### Digital Time + Date
-- Digital time is formatted with `Intl.DateTimeFormat` so it honors the 12/24h toggle and timezone.
-- The date is also formatted with `Intl.DateTimeFormat` and converted to uppercase for styling.
-
-### World Time Panel
-- The panel lists four fixed IANA time zones.
-- On each frame, the panel updates with a new `Intl.DateTimeFormat` instance for each zone.
-- You can add more time zones by editing the `timezones` array in `script.js`.
-
-### Theme System
-- Themes are implemented via CSS class toggles on `<body>`:
-  - `theme-aurora`
-  - `theme-desert`
-  - `theme-steel`
-- Each theme overrides CSS variables like `--accent` and `--bg-deep`.
-- The active theme persists via `localStorage`.
-
-### Sunrise/Sunset Ring
-- If the user grants location permission, sunrise and sunset are calculated with a simplified solar algorithm.
-- The ring is rendered using a CSS `conic-gradient`, highlighting the daylight arc.
-- A dot marker rotates to show the current sun position.
-- If location isn’t available, the ring is faded to a low-opacity state.
-
-### Seconds Progress Ring
-- A second `conic-gradient` fills 0–360° each minute.
-- The fill updates every frame in smooth mode or every second in tick mode.
-
-### Calendar Panel
-- A calendar grid is generated by `buildCalendar()`.
-- It highlights today’s date, and you can navigate months with Prev/Next.
-- The header shows the active month/year in a localized format.
-
-### Focus Mode
-- Focus Mode hides the extra panels and enlarges the clock.
-- Toggled by the “Focus Mode” button or the floating “Exit Focus” button.
-- The toggle state persists in `localStorage`.
-
-### Ambient Mode
-- Ambient mode applies a slow hue shift using CSS `filter: hue-rotate(...)`.
-- The effect updates incrementally each animation frame.
-
-### Chime
-- A short sine-wave beep plays on the minute when enabled.
-- Uses the Web Audio API with a low attack and short decay.
-
-### Reduced Motion
-- If `prefers-reduced-motion` is enabled, smooth seconds are forced off.
-- This reduces overall motion and avoids continuous sweeping.
-
-## Run Locally
-1. Open `index.html` directly in your browser.
-2. Or run a local server in this folder:
-   - `python3 -m http.server 8000`
-   - Then open `http://localhost:8000`
-
-## Project Structure
-- `index.html`: Markup and controls
-- `styles.css`: Visual design and animations
-- `script.js`: Clock logic, formatting, and responsiveness
-- `README.md`: Usage + documentation (this file)
-
-## Customization Tips
-- Change fonts in `styles.css` by editing the `@import` and `font-family` on `body`.
-- Add or remove themes by copying a `body.theme-*` block.
-- Modify the world time list in `script.js`:
-  - Update the `timezones` array.
-- Adjust the clock size by editing `.clock-container` and ring sizes in CSS.
-- Tune the chime volume by changing `masterGain.gain.value` in `initAudio()`.
+## Roadmap
+- Add configurable world time city management in the UI.
+- Add optional offline fallback for any external assets.
+- Add keyboard shortcuts for common toggles.
+- Expand accessibility controls for contrast and type scale.
 
 ## Notes
-- Uses `requestAnimationFrame` for smooth animation.
-- Time formatting is handled with `Intl.DateTimeFormat`.
-- Sunrise/sunset ring requires location permission.
-- All settings persist in `localStorage` under the key `modernClockSettings`.
+- Uses `requestAnimationFrame` for smooth visual updates.
+- Time/date formatting relies on `Intl.DateTimeFormat`.
+- Geolocation-driven daylight ring gracefully degrades when permission is denied.
